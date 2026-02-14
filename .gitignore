@@ -4,6 +4,7 @@ target/
 !**/src/test/**/target/
 .kotlin
 *.json
+dependency-reduced-pom.xml
 
 ### IntelliJ IDEA ###
 .idea/
