@@ -1,26 +1,35 @@
 package org.janusvault.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
-@Data
+import java.util.Arrays;
+
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class PasswordEntry {
-    private String title;
-    private String site;
-    private String login;
-    private String password;
-    private String note;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private char[] title;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private char[] site;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private char[] login;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private char[] password;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private char[] note;
 
-    private String formatNote(){
-        if(note != null)
-            return String.format("| Note: %s", note);
-        return "";
+    public void clean() {
+        destroyField(this.title);
+        destroyField(this.site);
+        destroyField(this.login);
+        destroyField(this.password);
+        destroyField(this.note);
     }
-
-    @Override
-    public String toString() {
-        return String.format("[%s] Site: %s | Login: %s | Password: %s %s",
-                title, site, login, password, formatNote());
+    private void destroyField(char[] array){
+        if(array != null)
+            Arrays.fill(array, '\0');
     }
 }

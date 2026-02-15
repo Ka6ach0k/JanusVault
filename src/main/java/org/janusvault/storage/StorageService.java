@@ -5,44 +5,57 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.janusvault.crypto.CryptoService;
 import org.janusvault.model.PasswordEntry;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class StorageService {
 
-    public static void save(List<PasswordEntry> entries, String masterKey, String filename)
-            throws IOException, NoSuchPaddingException,
-            IllegalBlockSizeException, NoSuchAlgorithmException,
-            BadPaddingException, InvalidKeyException {
-        JsonMapper mapper = new JsonMapper();
-        String jsonData = mapper.writeValueAsString(entries);
-        String jsonDataEncrypted = CryptoService.encrypt(jsonData, masterKey);
+    private static final JsonMapper MAPPER = new JsonMapper();
 
-        Files.writeString(new File(filename).toPath(), jsonDataEncrypted);
-    }
+    public static void save(List<PasswordEntry> entries, char[] masterKey, String filename)
+            throws Exception {
+        byte[] rawJson = MAPPER.writeValueAsBytes(entries);
+        byte[] encryptedJson = null;
 
-    public static List<PasswordEntry> load(String masterKey, String filename)
-            throws IOException, NoSuchPaddingException,
-            IllegalBlockSizeException, NoSuchAlgorithmException,
-            BadPaddingException, InvalidKeyException {
-        File file = new File(filename);
-        if (!file.exists()) {
-            return new ArrayList<PasswordEntry>();
+        try {
+            encryptedJson = CryptoService.encrypt(rawJson, masterKey);
+
+            Files.write(Paths.get(filename), encryptedJson);
+        } finally {
+            Arrays.fill(rawJson, (byte) 0);
+            if (encryptedJson != null)
+                Arrays.fill(encryptedJson, (byte) 0);
         }
 
-        String jsonDataDecrypted = Files.readString(file.toPath());
-        String jsonData = CryptoService.decrypt(jsonDataDecrypted, masterKey);
-
-        JsonMapper mapper = new JsonMapper();
-       return mapper.readValue(jsonData, new TypeReference<List<PasswordEntry>>() {});
+        if (masterKey != null)
+            Arrays.fill(masterKey, '\0');
     }
 
+    public static List<PasswordEntry> load(char[] masterKey, String filename)
+            throws Exception {
+        File file = new File(filename);
+        if (!file.exists()) {
+            return new ArrayList<>();
+        }
+
+        byte[] encryptedJson = Files.readAllBytes(file.toPath());
+        byte[] decryptedJson = null;
+
+        try {
+            decryptedJson = CryptoService.decrypt(encryptedJson, masterKey);
+
+            return MAPPER.readValue(decryptedJson, new TypeReference<List<PasswordEntry>>() {
+            });
+        } finally {
+            if (decryptedJson != null)
+                Arrays.fill(decryptedJson, (byte) 0);
+            Arrays.fill(encryptedJson, (byte) 0);
+            if (masterKey != null)
+                Arrays.fill(masterKey, '\0');
+        }
+    }
 }
