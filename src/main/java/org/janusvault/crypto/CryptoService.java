@@ -11,7 +11,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 
 public class CryptoService {
-    private static final String TRANSFORMATION = "AES/GСM/NoPadding";
+    private static final String TRANSFORMATION = "AES/GCM/NoPadding";
     private static final String ALGORITHM = "AES";
     private static final String FACTORY_ALGORITHM = "PBKDF2WithHmacSHA256";
 

@@ -7,10 +7,16 @@ import org.janusvault.model.PasswordEntry;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.janusvault.storage.ConfigService.APP_DIR;
 
 public class StorageService {
 
@@ -30,9 +36,6 @@ public class StorageService {
             if (encryptedJson != null)
                 Arrays.fill(encryptedJson, (byte) 0);
         }
-
-        if (masterKey != null)
-            Arrays.fill(masterKey, '\0');
     }
 
     public static List<PasswordEntry> load(char[] masterKey, String filename)
@@ -54,8 +57,25 @@ public class StorageService {
             if (decryptedJson != null)
                 Arrays.fill(decryptedJson, (byte) 0);
             Arrays.fill(encryptedJson, (byte) 0);
-            if (masterKey != null)
-                Arrays.fill(masterKey, '\0');
+        }
+    }
+
+    public static List<String> getAvailableVaults() {
+        try {
+            if (!Files.exists(APP_DIR))
+                return Collections.emptyList();
+
+            try (Stream<Path> stream = Files.list(APP_DIR)) {
+                return stream
+                        .map(Path::getFileName)
+                        .map(Path::toString)
+                        .filter(name -> name.endsWith(".db"))
+                        .map(name -> name.replace(".db", ""))
+                        .sorted()
+                        .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            return Collections.emptyList();
         }
     }
 }

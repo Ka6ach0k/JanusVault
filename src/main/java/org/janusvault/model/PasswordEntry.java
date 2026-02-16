@@ -10,15 +10,10 @@ import java.util.Arrays;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PasswordEntry {
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private char[] title;
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private char[] site;
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private char[] login;
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private char[] password;
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private char[] note;
 
     public void clean() {
