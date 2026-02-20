@@ -6,7 +6,7 @@ public class CharUtil {
         if (source == null || target == null || target.length > source.length)
             return false;
 
-        for (int i = 0; i < source.length - target.length; i++) {
+        for (int i = 0; i <= source.length - target.length; i++) {
             boolean found = true;
 
             for (int j = 0; j < target.length; j++) {
