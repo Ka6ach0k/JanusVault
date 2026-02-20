@@ -38,4 +38,16 @@ public class CharUtil {
         }
         return str1.length - str2.length;
     }
+
+    public static boolean equalsIgnoreCase(char[] str1, char[] str2) {
+        if (str1 == str2)
+            return true;
+        if (str1 == null || str2 == null || str1.length != str2.length)
+            return false;
+
+        for (int i = 0; i < str1.length; i++)
+            if (Character.toLowerCase(str1[i]) != Character.toLowerCase(str2[i]))
+                return false;
+        return true;
+    }
 }

@@ -2,6 +2,7 @@ package org.janusvault.cli;
 
 import org.janusvault.model.PasswordEntry;
 import org.janusvault.storage.StorageService;
+import org.janusvault.util.PrintMessage;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -50,7 +51,7 @@ public class ListCommand implements Runnable {
             return;
 
         if (masterKey == null) {
-            printErrorMessage("Не указан мастер ключ");
+            PrintMessage.printError("Не указан мастер ключ");
             return;
         }
 
@@ -62,7 +63,7 @@ public class ListCommand implements Runnable {
             List<String> vaults = StorageService.getAvailableVaults();
 
             if (vaults.isEmpty())
-                printWarningMessage("Хранилищ пока нет");
+                PrintMessage.printWarning("Хранилищ пока нет");
             else {
                 String message = "Доступные хранилища";
                 System.out.println(
@@ -81,7 +82,7 @@ public class ListCommand implements Runnable {
             entries = StorageService.load(masterKey, parent.getVaultFilename());
 
             if (entries.isEmpty()) {
-                printWarningMessage("Хранилище пустое");
+                PrintMessage.printWarning("Хранилище пустое");
                 return;
             }
 
@@ -90,14 +91,14 @@ public class ListCommand implements Runnable {
                     .collect(Collectors.toList());
 
             if (filteredEntries.isEmpty()) {
-                printWarningMessage("Ничего не найдено");
+                PrintMessage.printWarning("Ничего не найдено");
                 return;
             }
 
             printVertical(filteredEntries);
 
         } catch (Exception e) {
-            printErrorMessage("Ошибка доступа. Проверьте мастер ключ");
+            PrintMessage.printError("Ошибка доступа. Проверьте мастер ключ");
         } finally {
             clean(entries);
         }
@@ -143,16 +144,6 @@ public class ListCommand implements Runnable {
 
         return containsIgnoreCase(entry.getTitle(), pattern.toCharArray()) ||
                 containsIgnoreCase(entry.getSite(), pattern.toCharArray());
-    }
-
-    private void printErrorMessage(String message) {
-        System.err.println(
-                CommandLine.Help.Ansi.AUTO.string("@|red " + message + " |@"));
-    }
-
-    private void printWarningMessage(String message) {
-        System.out.println(
-                CommandLine.Help.Ansi.AUTO.string("@|yellow " + message + " |@"));
     }
 
 }

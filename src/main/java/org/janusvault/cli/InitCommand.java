@@ -2,6 +2,7 @@ package org.janusvault.cli;
 
 import org.janusvault.storage.ConfigService;
 import org.janusvault.storage.StorageService;
+import org.janusvault.util.PrintMessage;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -46,9 +47,7 @@ public class InitCommand implements Runnable {
             File file = new File(vaultPath);
 
             if (file.exists()) {
-                String message = "Хранилище уже существует";
-                System.err.println(
-                        CommandLine.Help.Ansi.AUTO.string("@|red " + message + " |@"));
+                PrintMessage.printError("Хранилище уже существует");
                 return;
             }
             StorageService.save(new ArrayList<>(), masterKey, vaultPath);
@@ -56,14 +55,9 @@ public class InitCommand implements Runnable {
             if (makeDefaultVault)
                 ConfigService.setDefaultVault(name);
 
-            String message = "Хранилище " + name + " создано";
-            System.out.println(
-                    CommandLine.Help.Ansi.AUTO.string("@|green " + message + " |@"));
+            PrintMessage.printSuccess("Хранилище создано");
         } catch (Exception e) {
-            System.err.println(e.getMessage());
-            String message = "Ошибка при создания хранилища";
-            System.err.println(
-                    CommandLine.Help.Ansi.AUTO.string("@|red " + message + " |@"));
+            PrintMessage.printError("Ошибка при создания хранилища");
         } finally {
             if (masterKey != null)
                 Arrays.fill(masterKey, '\0');

@@ -13,8 +13,10 @@ import picocli.CommandLine.ScopeType;
                 AddCommand.class,
                 ListCommand.class,
                 InitCommand.class,
-                SetDefaultCommand.class
-        }//, DeleteCommand.class, UpdateCommand.class}
+                SetDefaultCommand.class,
+                UpdateCommand.class,
+                DeleteCommand.class
+        }
 )
 public class JanusCommand implements Runnable {
 

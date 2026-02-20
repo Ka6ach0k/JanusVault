@@ -2,6 +2,8 @@ package org.janusvault.cli;
 
 import org.janusvault.model.PasswordEntry;
 import org.janusvault.storage.StorageService;
+import org.janusvault.util.CharUtil;
+import org.janusvault.util.PrintMessage;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -53,6 +55,14 @@ public class AddCommand implements Runnable {
 
             entries = StorageService.load(masterKey, parent.getVaultFilename());
 
+            boolean availableRecord = entries.stream()
+                            .anyMatch(el -> CharUtil.equalsIgnoreCase(el.getTitle(), title));
+
+            if (availableRecord) {
+                PrintMessage.printError("Ошибка записи. Такой заголовок уже существует");
+                return;
+            }
+
             entries.add(new PasswordEntry(
                     title,
                     site,
@@ -68,14 +78,9 @@ public class AddCommand implements Runnable {
 
             StorageService.save(entries, masterKey, parent.getVaultFilename());
 
-            String message = "Запись успешно добавлена";
-            System.out.println(
-                    CommandLine.Help.Ansi.AUTO.string("@|green " + message + " |@"));
+            PrintMessage.printSuccess("Запись успешно добавлена");
         } catch (Exception e) {
-            String message = "Ошибка доступа. Проверьте мастер ключ";
-            System.err.println(
-                    CommandLine.Help.Ansi.AUTO.string("@|red " + message + " |@")
-            );
+            PrintMessage.printError("Ошибка доступа. Проверьте мастер ключ");
         } finally {
             if (entries != null)
                 entries.forEach(PasswordEntry::clean);

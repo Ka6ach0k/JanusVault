@@ -3,6 +3,7 @@ package org.janusvault.cli;
 import org.janusvault.model.PasswordEntry;
 import org.janusvault.storage.StorageService;
 import org.janusvault.util.CharUtil;
+import org.janusvault.util.PrintMessage;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -59,11 +60,11 @@ public class UpdateCommand implements Runnable {
             entries = StorageService.load(masterKey, parent.getVaultFilename());
 
             Optional<PasswordEntry> entry = entries.stream()
-                    .filter(el -> CharUtil.containsIgnoreCase(el.getTitle(), targetTitle))
+                    .filter(el -> CharUtil.equalsIgnoreCase(el.getTitle(), targetTitle))
                     .findFirst();
 
             if (entry.isEmpty()) {
-                printWarningMessage("Запись не найдена");
+                PrintMessage.printWarning("Запись не найдена");
                 return;
             }
 
@@ -77,11 +78,9 @@ public class UpdateCommand implements Runnable {
                 entry.get().setNote(newNote);
 
             StorageService.save(entries, masterKey, parent.getVaultFilename());
-            String message = "Запись успешно обновлена";
-            System.out.println(
-                    CommandLine.Help.Ansi.AUTO.string("@|green " + message + " |@"));
+            PrintMessage.printSuccess("Запись успешно обновлена");
         } catch (Exception e) {
-            printErrorMessage("Ошибка доступа. Проверьте мастер ключ");
+            PrintMessage.printError("Ошибка доступа. Проверьте мастер ключ");
         } finally {
             if (entries != null)
                 entries.forEach(PasswordEntry::clean);
@@ -92,15 +91,5 @@ public class UpdateCommand implements Runnable {
             if (newPassword != null) Arrays.fill(newPassword, '\0');
             if (newNote != null) Arrays.fill(newNote, '\0');
         }
-    }
-
-    private void printErrorMessage(String message) {
-        System.err.println(
-                CommandLine.Help.Ansi.AUTO.string("@|red " + message + " |@"));
-    }
-
-    private void printWarningMessage(String message) {
-        System.out.println(
-                CommandLine.Help.Ansi.AUTO.string("@|yellow " + message + " |@"));
     }
 }
