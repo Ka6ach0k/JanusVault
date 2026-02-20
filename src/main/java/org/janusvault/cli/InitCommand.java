@@ -14,6 +14,7 @@ import java.util.Arrays;
 
 @Command(
         name = "init",
+        mixinStandardHelpOptions = true,
         description = "Создать новое хранилище"
 )
 public class InitCommand implements Runnable {
