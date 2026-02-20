@@ -14,6 +14,7 @@ import static org.janusvault.util.CharUtil.compareToIgnoreCase;
 
 @Command(
         name = "add",
+        mixinStandardHelpOptions = true,
         description = "Добавляет пароль"
 )
 public class AddCommand implements Runnable {
