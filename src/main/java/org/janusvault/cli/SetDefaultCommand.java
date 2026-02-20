@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 
 @Command(
         name = "set-default",
+        mixinStandardHelpOptions = true,
         description = "Устанавливает хранилище по умолчанию"
 )
 public class SetDefaultCommand implements Runnable {
