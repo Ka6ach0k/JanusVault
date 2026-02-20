@@ -15,6 +15,7 @@ import static org.janusvault.util.CharUtil.containsIgnoreCase;
 
 @Command(
         name = "list",
+        mixinStandardHelpOptions = true,
         description = "Показывает список паролей"
 )
 public class ListCommand implements Runnable {
@@ -38,7 +39,6 @@ public class ListCommand implements Runnable {
     @Option(
             names = {"-m", "--master"},
             description = "Мастер ключ",
-            arity = "0..1",
             interactive = true
     )
     private char[] masterKey;
@@ -46,33 +46,42 @@ public class ListCommand implements Runnable {
     @Override
     public void run() {
 
+        if (showAvailableVault())
+            return;
+
+        if (masterKey == null) {
+            printErrorMessage("Не указан мастер ключ");
+            return;
+        }
+
+        showVault();
+    }
+
+    private boolean showAvailableVault() {
         if (showAvailable) {
             List<String> vaults = StorageService.getAvailableVaults();
-            if (vaults.isEmpty()) {
-                String message = "Хранилищ пока нет";
-                System.out.println(
-                        CommandLine.Help.Ansi.AUTO.string("@|yellow " + message + " |@")
-                );
-            } else {
+
+            if (vaults.isEmpty())
+                printWarningMessage("Хранилищ пока нет");
+            else {
                 String message = "Доступные хранилища";
                 System.out.println(
                         CommandLine.Help.Ansi.AUTO.string("@|bold,blue " + message + " |@")
                 );
                 vaults.forEach(vault -> System.out.println("- " + vault));
             }
-
-            return;
+            return true;
         }
+        return false;
+    }
 
+    private void showVault() {
         List<PasswordEntry> entries = null;
         try {
             entries = StorageService.load(masterKey, parent.getVaultFilename());
 
             if (entries.isEmpty()) {
-                String message = "Хранилище пустое";
-                System.out.println(
-                        CommandLine.Help.Ansi.AUTO.string("@|yellow " + message + " |@")
-                );
+                printWarningMessage("Хранилище пустое");
                 return;
             }
 
@@ -81,27 +90,24 @@ public class ListCommand implements Runnable {
                     .collect(Collectors.toList());
 
             if (filteredEntries.isEmpty()) {
-                String message = "Ничего не найдено";
-                System.out.println(
-                        CommandLine.Help.Ansi.AUTO.string("@|yellow " + message + " |@")
-                );
+                printWarningMessage("Ничего не найдено");
                 return;
             }
 
             printVertical(filteredEntries);
 
         } catch (Exception e) {
-            String message = "Ошибка доступа. Проверьте мастер ключ";
-            System.err.println(
-                    CommandLine.Help.Ansi.AUTO.string("@|red " + message + " |@")
-            );
+            printErrorMessage("Ошибка доступа. Проверьте мастер ключ");
         } finally {
-            if (entries != null)
-                entries.forEach(PasswordEntry::clean);
-            if (masterKey != null)
-                Arrays.fill(masterKey, '\0');
+            clean(entries);
         }
+    }
 
+    private void clean(List<PasswordEntry> entries) {
+        if (entries != null)
+            entries.forEach(PasswordEntry::clean);
+        if (masterKey != null)
+            Arrays.fill(masterKey, '\0');
     }
 
     private void printVertical(List<PasswordEntry> entries) {
@@ -139,5 +145,14 @@ public class ListCommand implements Runnable {
                 containsIgnoreCase(entry.getSite(), pattern.toCharArray());
     }
 
+    private void printErrorMessage(String message) {
+        System.err.println(
+                CommandLine.Help.Ansi.AUTO.string("@|red " + message + " |@"));
+    }
+
+    private void printWarningMessage(String message) {
+        System.out.println(
+                CommandLine.Help.Ansi.AUTO.string("@|yellow " + message + " |@"));
+    }
 
 }
